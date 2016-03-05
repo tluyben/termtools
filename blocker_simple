@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+
+%ips = ();
+open(F1, ">/tmp/ip.log");
+while(1) {
+ open(F,"netstat -ntu | awk '{print \$5}' | cut -d: -f1 | sort | uniq -c | sort -n|");
+ while(<F>) {
+  chomp;
+  /(\d+?)\ (.*)$/;
+  next if $2 eq "127.0.0.1";
+  next if $1 < 20;
+  next if $ips{$2};
+  $ips{$2} = 1;
+  `iptables -A INPUT -p tcp  --source $2 --dport 80 -j REJECT`;
+  print F1 "Blocked: $1 => $2\n";
+}
+ close F;
+ sleep 1;
+}
+close F1;

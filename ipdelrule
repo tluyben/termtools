@@ -1,0 +1,3 @@
+#!/bin/sh
+
+iptables --list -n --line-numbers |grep $@|awk '{print $1}'|xargs -I % iptables -D INPUT %

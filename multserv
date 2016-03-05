@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+
+$cmd = 0; 
+$subj = 0;
+@servers = ();
+$port = 22;
+$lastf = 0; 
+
+foreach(@ARGV) {
+ if (!$cmd) {
+  if ($_ =~ /^\-/) {
+   $cmd = $_;
+   $lastf = $_;
+   next;
+  } else {
+   last;
+  }
+ } else {
+  #if ($_[0] == "-" && !$subj) {
+  # last;
+  #} 
+  if ($_ =~ /^\-/) {
+   $lastf = $_;
+   next;
+  }
+  if ($subj) {
+   @servers = split(/\,/, $_);
+  } else {
+   $subj = $_;
+  }
+ }
+}
+
+if (!$subj || !scalar(@servers)) {
+ print "Missing arguments! Subject = $subj\n";
+ $cmd = 0;
+}
+
+if (!$cmd) {
+ print "Usage: ./multiserv <main command> args <subcommand> args\n";
+ print "Main commands:\n"; 
+
+ print "-copy-local (or -copy): copies a file from local to servers\n";
+ print "Sub command: -to <servers> separated by comma's, can include paths after :.\n\n";
+
+ print "-copy-remote: copies a file from a remote server to servers\n";
+ print "The argument is the server which should include a path to the file\n";
+ print "Sub command: -to <servers> separated by comma's, can include paths after :.\n\n";
+
+ print "-execute: executes a local command on a remote server\n";
+ print "The argument is the (path to) the local command\n";
+ print "Sub command: -on <servers> separated by commands, can include the path in which the command will be executed after :.\n\n";
+
+ print "-execute-remote: executed a command on the remote server(s)\n";
+ print "The argument needs to contain the remote path to the command on all servers (it needs to be identical).\n";
+ print "Sub command: -on <servers> separated by commands, can include the path in which the command will be executed after :.\n\n";
+
+ exit;
+}
+if ($cmd eq "-copy-remote") {
+ # copy to local
+ print `scp -r "$subj" /tmp/`;
+ # figure out the filename
+ $fn = $subj;
+ if ($subj =~ /.*\/(.*)/isgm) {
+  $fn = $1; 
+ }
+ # copy to the servers
+ foreach(@servers) {
+  print `scp -r /tmp/"$fn" $_`;
+ }
+}
+if ($cmd eq "-execute") {
+ $lf = $fn = $sc = $subj;
+ if ($subj =~ /.*\/(.*)/isgm) {
+  $sc = $fn = $1; 
+ }
+ if ($fn =~ /(.*?)\ .*/) {
+  $fn = $1; 
+  $lf =~ /(.*?)\ .*/; 
+  $lf = $1; 
+ } 
+ foreach(@servers) {
+  $server = $_;
+  $path = "./";
+  
+  if ($_ =~ /(.*)\:(.*)/) {
+   $server = $1; 
+   $path = $2;
+  }
+
+  print `scp "$lf" $server:/tmp/`;
+  $run = "chmod 755 /tmp/\"$fn\"; cd \"$path\"; /tmp/$sc; rm -f /tmp/\"$fn\"";
+  print `ssh $server '($run)'`;
+ } 
+}
+if ($cmd eq "-execute-remote") {
+ if ($subj[0] != ".") {
+  if ($subj[0] != "/") {
+   $subj = "/$subj";
+  }
+  $subj = ".$subj";
+ }
+ foreach(@servers) {
+  if ($_ =~ /(.*)\:(.*)/) {
+   $run = "ssh $1 '(cd \"$2\"; \"$subj\")'";
+   print `$run`;
+  } else {
+   $run = "ssh $_ '(\"$subj\")'";
+   print `$run`; 
+  }
+ } 
+}
+
+print "Done... \n"; 
+
