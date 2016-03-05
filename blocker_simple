@@ -23,6 +23,7 @@ while(1) {
   $skip = 0; 
   foreach(@whitelisted) {
    if ($2 =~ /^$_/) {
+    print F1 "Skipped whitelisted: $1 => $2\n";
     $skip = 1; 
     last; 
    }
