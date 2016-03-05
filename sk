@@ -1,2 +1,2 @@
 #!/bin/sh
-ps auxwwww|grep $@|awk '{print $2}'|xargs kill -9
+ps auxwwww|grep $@|awk '{print $2}'|grep -v $$|xargs kill -9

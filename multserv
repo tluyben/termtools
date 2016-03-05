@@ -67,6 +67,7 @@ if ($cmd eq "-copy-remote") {
  }
  # copy to the servers
  foreach(@servers) {
+  print ">> COPYING to remote server $_\n";
   print `scp -r /tmp/"$fn" $_`;
  }
 }
@@ -81,6 +82,7 @@ if ($cmd eq "-execute") {
   $lf = $1; 
  } 
  foreach(@servers) {
+  print "EXECUTING on remote server $_\n";
   $server = $_;
   $path = "./";
   
@@ -89,8 +91,8 @@ if ($cmd eq "-execute") {
    $path = $2;
   }
 
-  print `scp "$lf" $server:/tmp/`;
-  $run = "chmod 755 /tmp/\"$fn\"; cd \"$path\"; /tmp/$sc; rm -f /tmp/\"$fn\"";
+  print `scp "$lf" $server:./`;
+  $run = "chmod 755 ~/\"$fn\"; cd \"$path\"; ~/$sc; rm -f ~/\"$fn\"";
   print `ssh $server '($run)'`;
  } 
 }
@@ -102,11 +104,12 @@ if ($cmd eq "-execute-remote") {
   $subj = ".$subj";
  }
  foreach(@servers) {
+  print "EXECUTING on remote server $_\n";
   if ($_ =~ /(.*)\:(.*)/) {
    $run = "ssh $1 '(cd \"$2\"; \"$subj\")'";
    print `$run`;
   } else {
-   $run = "ssh $_ '(\"$subj\")'";
+   $run = "ssh $_ '($subj)'";
    print `$run`; 
   }
  } 
