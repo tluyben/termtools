@@ -57,6 +57,23 @@ if (!$cmd) {
 
  exit;
 }
+if ($cmd eq "-copy" or $cmd eq "-copy-local") {
+  
+ # figure out the filename
+ $fn = $subj;
+ if ($subj =~ /.*\/(.*)/isgm) {
+  $fn = $1; 
+ }
+
+ foreach(@servers) {
+  $target = $_; 
+  if (!($target=~/\:/)) {
+   $target .= ":.";
+  }
+  print ">> COPYING to remote server $target\n";
+  print `scp "$subj" $target`;
+ } 
+}
 if ($cmd eq "-copy-remote") {
  # copy to local
  print `scp -r "$subj" /tmp/`;

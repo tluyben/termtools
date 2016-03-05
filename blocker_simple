@@ -1,5 +1,17 @@
 #!/usr/bin/perl
 
+@whitelisted = ();
+$whitefile = "./whitelist.txt";
+
+if (-f $whitefile) {
+ open(F, $whitefile); 
+ while(<F>) {
+  chomp; 
+  next if /^$/;
+  push(@whitelisted, $_);
+ }
+}
+
 %ips = ();
 open(F1, ">/tmp/ip.log");
 while(1) {
@@ -8,6 +20,14 @@ while(1) {
   chomp;
   /(\d+?)\ (.*)$/;
   next if $2 eq "127.0.0.1";
+  $skip = 0; 
+  foreach(@whitelisted) {
+   if ($2 =~ /^$_/) {
+    $skip = 1; 
+    last; 
+   }
+  }
+  next if $skip;
   next if $1 < 20;
   next if $ips{$2};
   $ips{$2} = 1;
