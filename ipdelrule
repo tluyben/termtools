@@ -1,3 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-iptables --list -n --line-numbers |grep $@|awk '{print $1}'|xargs -I % iptables -D INPUT %
+while true; do 
+ COUNT=`iptables --list -n | grep $@ | wc -l`
+ if [ $COUNT -eq "0" ]
+  then
+   break
+ fi  
+ iptables --list -n --line-numbers |grep $@|awk '{print $1}'|xargs -I % iptables -D INPUT %
+done
