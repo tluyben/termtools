@@ -27,6 +27,12 @@ while(1) {
     while(<F>) {
      chomp; 
      next if /^$/;
+  
+     # actually clear if it is already in iptables
+     if (-f "./ipdelrule") {
+      print `./ipdelrule $_`;
+     }
+
      push(@whitelisted, $_);
     }
    }
