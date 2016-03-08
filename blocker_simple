@@ -1,10 +1,14 @@
 #!/usr/bin/perl
 
-@whitelisted = ();
-$whitefile = "./whitelist.txt";
-$old = 0; 
+use strict;
+use File::stat;
 
-%ips = ();
+my @whitelisted = ();
+my $whitefile = "./whitelist.txt";
+my $old = 0; 
+
+my %ips = ();
+
 open(F1, ">/tmp/ip.log");
 while(1) {
  open(F,"netstat -ntu | awk '{print \$5}' | cut -d: -f1 | sort | uniq -c | sort -n|");
@@ -12,10 +16,10 @@ while(1) {
   chomp;
   /(\d+?)\ (.*)$/;
   next if $2 eq "127.0.0.1";
-  $skip = 0; 
+  my $skip = 0; 
 
   if (-f $whitefile) {
-   $tsp = stat($whitefile)->mtime;
+   my $tsp = stat($whitefile)->mtime;
    if ($old < $tsp) {
     $old = $tsp; 
     @whitelisted = ();
