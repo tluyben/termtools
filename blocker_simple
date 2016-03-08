@@ -2,15 +2,7 @@
 
 @whitelisted = ();
 $whitefile = "./whitelist.txt";
-
-if (-f $whitefile) {
- open(F, $whitefile); 
- while(<F>) {
-  chomp; 
-  next if /^$/;
-  push(@whitelisted, $_);
- }
-}
+$old = 0; 
 
 %ips = ();
 open(F1, ">/tmp/ip.log");
@@ -21,6 +13,21 @@ while(1) {
   /(\d+?)\ (.*)$/;
   next if $2 eq "127.0.0.1";
   $skip = 0; 
+
+  if (-f $whitefile) {
+   $tsp = stat($whitefile)->mtime;
+   if ($old < $tsp) {
+    $old = $tsp; 
+    @whitelisted = ();
+    open(F, $whitefile); 
+    while(<F>) {
+     chomp; 
+     next if /^$/;
+     push(@whitelisted, $_);
+    }
+   }
+  }
+
   foreach(@whitelisted) {
    if ($2 =~ /^$_/) {
     print F1 "Skipped whitelisted: $1 => $2\n";
