@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+
+if (scalar(@ARGV) != 3 and scalar(@ARGV) != 5) {
+ print "Runs a specific command when a certain load has been reached for a number of seconds.\n";
+ print "Usage: ./runonload [command] [maxload] [time] [kill command] [kill time]\n";
+ print "The [command] can return a PID which can be used for killing. PID in the [kill command] will be replaced by that PID if it exists.\n";
+ print "When the process has ben running 'kill time' seconds while the load is under the maxload, the process is killed by running kill command.\n";
+ exit;
+}
+
+my $cmd = $ARGV[0];
+my $max = $ARGV[1];
+my $sec = $ARGV[2]; 
+
+my $killcmd = 0; 
+my $killsec = 0; 
+
+if (scalar(@ARGV) == 5) {
+ $killcmd = $ARGV[3];
+ $killsec = $ARGV[4]; 
+}
+
+my $running = 0; 
+my $timer = time(); 
+my $pid = 0; 
+
+while (1) {
+
+ my $load = `uptime|./pregex "age: (\\d+)"`;
+ chomp($load);
+
+ $timer = time () if ($running and $load >= $max) or (!$running and $load < $max); 
+ 
+ if (!$running and (time() - $timer) > $sec) { 
+  $pid = `$cmd`;
+  chomp($pid); 
+  $timer = time();
+  $running = 1;
+ } elsif ($killcmd and $killsec and $running and (time() - $timer) > $killsec) {
+  my $kc = $killcmd;
+  if ($pid) {
+   $kc =~ s/PID/$pid/isgm;
+   $pid = 0;
+  }
+  print `$kc`; 
+  $timer = time();
+  $running = 0;
+ } 
+
+
+}

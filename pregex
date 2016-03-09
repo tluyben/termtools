@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+
+if (scalar(@ARGV) < 1) {
+ print "Pregex filters stdin with a regular expression.\n";
+ print "Usage: ./pregex [perl_regex]\n";
+ exit;
+}
+
+$re = $ARGV[0];
+$l = 0; 
+
+while(<STDIN>) {
+ if (/$re/isgm) {
+  print "\n" if $l;
+  print "$1"; 
+  $l = 1;
+ } 
+}
