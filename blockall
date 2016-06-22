@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Flushing all rules
+iptables -F
+iptables -X
+
+# Setting default filter policy
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+# Allow unlimited traffic on loopback
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
+ 
+/sbin/iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+/sbin/iptables -A OUTPUT -p tcp --sport 22 -j ACCEPT
+
+# make sure nothing comes or goes out of this box
+iptables -A INPUT -j DROP
+iptables -A OUTPUT -j DROP
